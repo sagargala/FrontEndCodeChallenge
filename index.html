@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+		<meta content="utf-8" http-equiv="encoding">
+		
+		<style type="text/css">
+			body {
+				margin: 0 auto;
+				padding: 0;
+				border: 0;
+				background: white;
+				width: 600px;
+				font-size: 85%;
+				font-family: "lucida grande",tahoma,verdana,arial,sans-serif;
+			}
+			p{margin:0;}
+			a{text-decoration:none;}
+			#container{
+				width:100%;
+				float:left;
+				display:block;
+				border:1px solid #eee;
+				margin:5px 0;
+			}	
+			#header, #content{
+				float:left;
+				width:100%;
+				padding:15px 0;
+				border-bottom:1px solid #eee;
+			}	
+			#header{
+				border-bottom:1px solid #eee;
+			}
+			#header span{
+				margin: 0 15px;
+				padding:5px 10px;
+				font-weight:bold;
+				border:1px solid #eee;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+				background-color:#eee;
+				color:#000;
+				cursor:pointer;
+			}
+			#header span.active{
+				background-color:#00B1DA;
+				color:#fff
+			}
+			.shot{
+				width:25%;
+				float:left;
+				padding:10px;
+				margin:13px;
+				border:1px solid #eee;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+			}
+			.shotTeaser, .shotTeaser img{
+				width:100%;
+			}
+			.shot p{
+				font-size: 11px;
+   				padding: 5px 0;
+   				color:#999;
+			}
+			.heartIcon, .commentIcon{
+				background-position:0 0;
+				background-repeat:no-repeat no-repeat;
+				padding-left:15px;
+			}
+			.heartIcon{
+				background-image:url(http://dribbble.com/images/icon-hearts.png);
+			}
+			.commentIcon{
+				background-image:url(http://dribbble.com/images/icon-comments.png?1);
+			}
+		</style>
+		
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+		<script type="text/javascript">
+			var page = 1,
+				pageTotal = 50,
+				category = 'everyone',
+				ajaxLoading = false;
+			
+
+			var getShotsByCategory = function(categoryName,pageFlag){
+
+	 			if(pageFlag == 0){
+		 			$('#content').empty();
+		 			page = 1;
+		 			category =  categoryName;
+
+		 			$('#header').find('span').removeClass('active');
+		 			$('#'+categoryName+'Tab').addClass('active');
+		 			
+	 			}
+				
+				$.ajax({
+					type : 'GET',
+					url : 'http://api.dribbble.com/shots/'+categoryName+'?page='+page,
+					crossDomain : true,
+					dataType : 'jsonp',
+					ajaxStart : function(){
+						ajaxLoading = true;
+					},
+					ajaxStop : function(){
+						ajaxLoading = false;
+					},
+					success : function(response){
+						pageLimit = response.total / 15;
+						var shotId = '';
+						$.each(response.shots,function(key,val){
+							$('#content').append('<div id="shot_'+val.id+'" class="shot"></div>');
+							shotId = $('#shot_'+val.id);
+							shotId.append('<div class="shotTeaser">'+
+								'<a href="'+val.url+'"><img alt="'+val.title+'" src="'+val.image_teaser_url+'"></a>'+					
+							'</div>');
+
+							shotId.append('<p>'+
+								'<span class="heartIcon"><span>'+val.likes_count+'</span>&nbsp;&nbsp;&nbsp;'+
+								'<span class="commentIcon"><span>'+val.comments_count+'</span>'+
+							'</p>');
+						});
+					}
+				});
+	
+	 		}
+	
+			$(document).ready(function(){
+				getShotsByCategory('everyone',0);
+
+				$(window).scroll(function(){
+					if  (($(window).scrollTop())>=($(document).height() - $(window).height()-5-$('#loadMore').height())){
+						if(page <= pageTotal && !ajaxLoading){
+							ajaxLoading = true;
+							page++;
+							getShotsByCategory(category,1);
+							ajaxLoading = false;
+						}
+					}
+				});
+			});
+		
+		</script>
+		
+		
+	</head>
+	<body>
+		<div id="container">
+			<div id="header">
+				<span id="popularTab" onclick="getShotsByCategory('popular',0);">Popular</span>
+				<span id="debutsTab" onclick="getShotsByCategory('debuts',0);">Debut</span>
+				<span id="everyoneTab" class="active" onclick="getShotsByCategory('everyone',0);">Everyone</span>
+			</div>
+			<div id="content">
+			</div>
+		</div> 
+	</body>
+</html>
